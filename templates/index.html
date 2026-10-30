@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaaS Dashboard</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f4f6f8; margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 1100px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .hidden { display: none !important; }
+        
+        /* AUTH FORM */
+        .auth-box { max-width: 400px; margin: 80px auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
+        .auth-tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #f1f3f5; padding-bottom: 10px; }
+        .tab-btn { background: none; border: none; font-size: 16px; font-weight: 600; color: #888; cursor: pointer; padding: 5px 10px; }
+        .tab-btn.active { color: #0070f3; border-bottom: 2px solid #0070f3; margin-bottom: -12px; }
+
+        input, select { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 14px; background: white; }
+        
+        /* HEADER */
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f3f5; padding-bottom: 20px; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
+        .brand { display: flex; align-items: center; gap: 15px; }
+        .logo-box { width: 50px; height: 50px; background: linear-gradient(135deg, #0070f3, #00c6ff); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; box-shadow: 0 4px 10px rgba(0,112,243,0.3); }
+        .store-title { margin: 0; font-size: 24px; color: #1a1a1a; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        .store-subtitle { margin: 2px 0 0 0; font-size: 13px; color: #666; font-weight: 500; }
+        
+        .header-actions { display: flex; align-items: center; gap: 10px; }
+        .version-badge { background-color: #e0f2fe; color: #0369a1; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 10px; border: 1px solid #bae6fd; }
+        
+        button { background-color: #0070f3; color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; transition: background 0.2s; display: flex; align-items: center; gap: 8px; text-decoration: none; }
+        button:hover { background-color: #0051a8; }
+        .secondary-btn { background-color: #475569; }
+        .secondary-btn:hover { background-color: #334155; }
+        .danger-btn { background-color: #dc2626; }
+        .danger-btn:hover { background-color: #b91c1c; }
+        
+        /* METRIKY & FILTRY */
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .metric-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px 20px; }
+        .metric-title { font-size: 12px; text-transform: uppercase; color: #64748b; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 8px; }
+        .metric-value { font-size: 24px; font-weight: 700; color: #0f172a; }
+        .metric-sub { font-size: 12px; color: #059669; margin-top: 4px; font-weight: 500; }
+        
+        .filter-bar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .filter-input { flex: 1; min-width: 220px; margin: 0; background: white; border: 1px solid #ddd; border-radius: 6px; padding: 10px; font-size: 14px; }
+        .filter-select { background: white; color: #333; border: 1px solid #ddd; border-radius: 6px; padding: 10px; font-size: 14px; cursor: pointer; width: auto; margin: 0; }
+
+        .status { margin-bottom: 20px; font-size: 14px; font-weight: 500; }
+        
+        /* TABULKA */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; vertical-align: middle; }
+        th { background-color: #f9fafb; color: #666; font-weight: 600; text-transform: uppercase; font-size: 12px; }
+        tr:hover { background-color: #f9fafb; }
+        
+        .badge { padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 600; display: inline-block; }
+        .status-paid { background-color: #fef3c7; color: #92400e; }
+        .status-delivered { background-color: #dbeafe; color: #1e40af; }
+        .status-received { background-color: #f3e8ff; color: #6b21a8; }
+        .status-completed { background-color: #d1fae5; color: #065f46; }
+        .status-disputed { background-color: #ffedd5; color: #c2410c; }
+        .status-canceled { background-color: #fee2e2; color: #991b1b; }
+        
+        .price { font-weight: bold; color: #111; }
+        .date { color: #888; font-size: 12px; }
+        
+        .review-box { display: flex; align-items: center; gap: 8px; }
+        .review-text { font-size: 12px; color: #555; font-style: italic; max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .icon-up { color: #059669; }  
+        .icon-down { color: #dc2626; }  
+        .icon-none { color: #cbd5e1; }  
+
+        /* POPUP MODAL STYLES */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); display: flex; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(4px); }
+        .modal-content { background: white; padding: 30px; border-radius: 12px; width: 100%; max-width: 500px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); position: relative; }
+        .modal-close { position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 22px; cursor: pointer; color: #888; padding: 0; }
+        .modal-close:hover { color: #333; }
+
+        /* STRÁNKOVÁNÍ */
+        .pagination { display: flex; justify-content: center; gap: 8px; margin-top: 20px; align-items: center; }
+        .page-btn { padding: 6px 12px; border: 1px solid #ddd; background: white; color: #333; cursor: pointer; border-radius: 6px; font-size: 13px; font-weight: 500; transition: 0.2s; }
+        .page-btn:hover { background: #f8fafc; border-color: #cbd5e1; }
+        .page-btn.active { background: #0070f3; color: white; border-color: #0070f3; }
+        .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .page-info { font-size: 13px; color: #64748b; margin: 0 10px; }
+    </style>
+</head>
+<body>
+
+    <!-- AUTHENTIKACE -->
+    <div id="auth-container" class="auth-box">
+        <div class="auth-tabs">
+            <button id="tab-login" class="tab-btn active" onclick="switchAuthTab('login')">Přihlášení</button>
+            <button id="tab-reg" class="tab-btn" onclick="switchAuthTab('reg')">Registrace</button>
+        </div>
+        
+        <div id="auth-error" style="color: #dc2626; font-size: 13px; margin-bottom: 10px; font-weight: 500;"></div>
+        <div id="auth-success" style="color: #059669; font-size: 13px; margin-bottom: 10px; font-weight: 500;"></div>
+
+        <div id="box-login">
+            <input type="email" id="login-email" placeholder="Emailová adresa">
+            <input type="password" id="login-password" placeholder="Heslo">
+            <button onclick="login()" style="width: 100%; margin-top: 10px; justify-content: center;">Přihlásit se</button>
+        </div>
+
+        <div id="box-reg" class="hidden">
+            <input type="text" id="reg-username" placeholder="Uživatelské jméno">
+            <input type="email" id="reg-email" placeholder="Emailová adresa">
+            <input type="password" id="reg-password" placeholder="Heslo">
+            <button onclick="register()" style="width: 100%; margin-top: 10px; justify-content: center;">Zaregistrovat se</button>
+        </div>
+    </div>
+
+    <!-- POPUP MODAL NASTAVENÍ -->
+    <div id="settings-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <button class="modal-close" onclick="toggleSettings()">×</button>
+            <h3 style="margin-top: 0; font-size: 18px;" data-i18n="settingsTitle">Nastavení obchodu & Discord</h3>
+            
+            <label style="font-size: 12px; font-weight: bold; color: #666; margin-top: 15px; display: block;" data-i18n="labelLanguage">Jazyk rozhraní / Language</label>
+            <select id="langSelect" onchange="changeLanguage(this.value)">
+                <option value="cs">čeština (CS)</option>
+                <option value="en">English (EN)</option>
+            </select>
+
+            <label style="font-size: 12px; font-weight: bold; color: #666; margin-top: 10px; display: block;" data-i18n="labelStoreName">Jméno obchodu</label>
+            <input type="text" id="setting-username" placeholder="Tvé jméno">
+            
+            <label style="font-size: 12px; font-weight: bold; color: #666; margin-top: 10px; display: block;">Eldorado Client ID & Secret</label>
+            <input type="text" id="setting-client-id" placeholder="Client ID">
+            <input type="password" id="setting-client-secret" placeholder="Client Secret">
+
+            <label style="font-size: 12px; font-weight: bold; color: #666; margin-top: 10px; display: block;">Discord Webhook URL</label>
+            <input type="text" id="discord-webhook-input" placeholder="https://discord.com/api/webhooks/...">
+            
+            <div style="display: flex; gap: 10px; margin-top: 20px; align-items: center; justify-content: space-between;">
+                <button onclick="saveSettings()" style="flex: 1; justify-content: center;"><span data-i18n="saveBtn">Uložit nastavení</span></button>
+                <button onclick="sendTestDiscord()" class="secondary-btn" style="flex: 1; justify-content: center;"><span data-i18n="testDiscordBtn">🔔 Test Discord</span></button>
+            </div>
+            <div id="test-status" style="font-size: 13px; margin-top: 10px; font-weight: 500; text-align: center;"></div>
+        </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="dashboard-container" class="container hidden">
+        <div class="header">
+            <div class="brand">
+                <div class="logo-box">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                </div>
+                <div>
+                    <h1 class="store-title">
+                        <span id="store-name-display">Maryxz</span> 
+                        <span class="version-badge">v0.1 Beta</span>
+                    </h1>
+                    <div class="store-subtitle" data-i18n="subtitle">Eldorado Seller Dashboard</div>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="secondary-btn" onclick="setStoreOffline()" style="width: auto;"><span data-i18n="onlineBtn">Online</span></button>
+                <button class="secondary-btn" onclick="toggleSettings()" style="width: auto;">⚙️ <span data-i18n="settingsBtn">Nastavení</span></button>
+                <button onclick="loadData()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                    <span data-i18n="refreshBtn">Aktualizovat data</span>
+                </button>
+                <button class="danger-btn" onclick="logout()" style="width: auto;"><span data-i18n="logoutBtn">Odhlásit</span></button>
+            </div>
+        </div>
+
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-title" data-i18n="revTitle">Tržby (Completed)</div>
+                <div class="metric-value" id="stat-revenue">$0.00</div>
+                <div class="metric-sub" id="stat-pending" style="color: #d97706;">+ $0.00 pending</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-title" data-i18n="totalTitle">Celkem objednávek</div>
+                <div class="metric-value" id="stat-total">0</div>
+                <div class="metric-sub" data-i18n="totalSub">všechny stažené</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-title" data-i18n="ratingTitle">Hodnocení obchodu</div>
+                <div class="metric-value">100%</div>
+                <div class="metric-sub" data-i18n="ratingSub">⭐ Pozitivní recenze</div>
+            </div>
+        </div>
+
+        <div class="filter-bar">
+            <input type="text" id="searchInput" class="filter-input" placeholder="🔍 Hledat kupujícího nebo položku..." oninput="filterOrders()">
+            <select id="statusFilter" class="filter-select" onchange="filterOrders()">
+                <option value="all" data-i18n="filterAll">Všechny stavy</option>
+                <option value="completed">Completed</option>
+                <option value="paid">Pending Delivery</option>
+                <option value="delivered">Delivered</option>
+                <option value="received">Received</option>
+                <option value="disputed">Disputed</option>
+                <option value="canceled">Canceled</option>
+            </select>
+        </div>
+
+        <div id="status" class="status">Čekám na načtení...</div>
+        
+        <table id="orders-table">
+            <thead>
+                <tr>
+                    <th data-i18n="thBuyer">Kupující</th>
+                    <th data-i18n="thItem">Položka / Kategorie</th>
+                    <th data-i18n="thPrice">Cena</th>
+                    <th data-i18n="thStatus">Stav</th>
+                    <th data-i18n="thReview">Hodnocení</th>
+                    <th data-i18n="thCreated">Vytvořeno</th>
+                    <th>Eldorado</th>
+                </tr>
+            </thead>
+            <tbody id="orders-body">
+            </tbody>
+        </table>
+        <div id="pagination-controls" class="pagination"></div>
+    </div>
+
+    <script>
+        const translations = {
+            cs: {
+                subtitle: "Eldorado Seller Dashboard",
+                settingsBtn: "Nastavení",
+                refreshBtn: "Aktualizovat data",
+                logoutBtn: "Odhlásit",
+                settingsTitle: "Nastavení obchodu & Discord",
+                labelLanguage: "Jazyk rozhraní / Language",
+                labelStoreName: "Jméno obchodu",
+                saveBtn: "Uložit nastavení",
+                testDiscordBtn: "🔔 Test Discord",
+                revTitle: "Tržby (Completed)",
+                totalTitle: "Celkem objednávek",
+                totalSub: "všechny stažené",
+                ratingTitle: "Hodnocení obchodu",
+                ratingSub: "⭐ Pozitivní recenze",
+                filterAll: "Všechny stavy",
+                thBuyer: "Kupující",
+                thItem: "Položka / Kategorie",
+                thPrice: "Cena",
+                thStatus: "Stav",
+                thReview: "Hodnocení",
+                thCreated: "Vytvořeno",
+                statusWaiting: "Čekám na načtení...",
+                statusDownloading: "⏳ Stahuji objednávky z Eldorada...",
+                statusSuccess: count => `✅ Úspěšně staženo celkem ${count} objednávek!`,
+                statusError: err => `❌ Nastala chyba: ${err}`,
+                statusConnError: "❌ Nepodařilo se spojit se serverem.",
+                noOrders: "ℹ️ Žádné objednávky nenalezeny."
+            },
+            en: {
+                subtitle: "Eldorado Seller Dashboard",
+                settingsBtn: "Settings",
+                refreshBtn: "Refresh Data",
+                logoutBtn: "Logout",
+                settingsTitle: "Store & Discord Settings",
+                labelLanguage: "Interface Language / Jazyk",
+                labelStoreName: "Store Name",
+                saveBtn: "Save Settings",
+                testDiscordBtn: "🔔 Test Discord",
+                revTitle: "Revenue (Completed)",
+                totalTitle: "Total Orders",
+                totalSub: "all fetched",
+                ratingTitle: "Store Rating",
+                ratingSub: "⭐ Positive reviews",
+                filterAll: "All statuses",
+                thBuyer: "Buyer",
+                thItem: "Item / Category",
+                thPrice: "Price",
+                thStatus: "Status",
+                thReview: "Review",
+                thCreated: "Created",
+                statusWaiting: "Waiting to load...",
+                statusDownloading: "⏳ Downloading orders from Eldorado...",
+                statusSuccess: count => `✅ Successfully downloaded ${count} orders in total!`,
+                statusError: err => `❌ Error: ${err}`,
+                statusConnError: "❌ Failed to connect to server.",
+                noOrders: "ℹ️ No orders found."
+            }
+        };
+
+        let currentLang = localStorage.getItem('app_lang') || 'cs';
+        let cachedOrders = [];
+        
+        // Přidané proměnné pro stránkování
+        let currentPage = 1;
+        const itemsPerPage = 15; // Zde můžeš změnit, kolik objednávek chceš na jedné straně
+
+        function renderTable(orders, page = 1) {
+            // Výpočet, jaký výsek pole se má zobrazit
+            const start = (page - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const paginatedOrders = orders.slice(start, end);
+
+            let html = '';
+            paginatedOrders.forEach(o => {
+                const state = o.state ? o.state.state : 'Unknown';
+                const amount = o.totalPrice ? o.totalPrice.amount : 0;
+                const details = o.orderOfferDetails || {};
+                const title = details.offerTitle || details.gameCategoryTitle || 'Položka';
+                html += `
+                    <tr>
+                        <td><strong>${o.buyerUsername || 'Unknown'}</strong></td>
+                        <td>${title}</td>
+                        <td class="price">$${amount.toFixed(2)}</td>
+                        <td>${getStatusBadge(state)}</td>
+                        <td>${getReviewHtml(o.review)}</td>
+                        <td class="date">${formatDate(o.createdDate)}</td>
+                        <td>
+                            <a href="https://www.eldorado.gg/order/${o.id}" target="_blank" style="padding: 4px 8px; border-radius: 4px; background: #e0e7ff; color: #4338ca; font-size: 12px; font-weight: bold; text-decoration: none;">🔗 Eldorado</a>
+                        </td>
+                    </tr>
+                `;
+            });
+            document.getElementById('orders-body').innerHTML = html;
+            
+            // Vykreslení tlačítek po aktualizaci tabulky
+            renderPagination(orders.length, page);
+        }
+
+        function renderPagination(totalItems, currentPage) {
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+            const container = document.getElementById('pagination-controls');
+            
+            if (totalPages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+
+            let html = `
+                <button class="page-btn" onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>←</button>
+                <span class="page-info">Strana ${currentPage} z ${totalPages}</span>
+                <button class="page-btn" onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>→</button>
+            `;
+            container.innerHTML = html;
+        }
+
+        function changePage(newPage) {
+            currentPage = newPage;
+            filterOrders(); // Znovu vyfiltruje a zavolá renderTable s novou stránkou
+        }
+
+        function filterOrders() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const status = document.getElementById('statusFilter').value;
+            const filtered = cachedOrders.filter(o => {
+                const buyer = (o.buyerUsername || '').toLowerCase();
+                const details = o.orderOfferDetails || {};
+                const title = (details.offerTitle || details.gameCategoryTitle || '').toLowerCase();
+                const st = (o.state ? o.state.state : '').toLowerCase();
+                return (buyer.includes(search) || title.includes(search)) && (status === 'all' || st === status);
+            });
+            
+            // Pojistka: pokud filtrování zmenší počet výsledků, vrátíme se na první stranu
+            const maxPage = Math.ceil(filtered.length / itemsPerPage);
+            if (currentPage > maxPage && maxPage > 0) currentPage = 1;
+            if (filtered.length === 0) currentPage = 1;
+
+            renderTable(filtered, currentPage);
+        }
+
+        function getToken() { return localStorage.getItem('access_token'); }
+        function logout() { localStorage.removeItem('access_token'); window.location.reload(); }
+        
+        function toggleSettings() { 
+            const modal = document.getElementById('settings-modal');
+            modal.classList.toggle('hidden');
+        }
+
+        document.getElementById('settings-modal').addEventListener('click', function(e) {
+            if (e.target === this) toggleSettings();
+        });
+
+        function switchAuthTab(tab) {
+            document.getElementById('auth-error').innerText = '';
+            document.getElementById('auth-success').innerText = '';
+            document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+            document.getElementById('tab-reg').classList.toggle('active', tab === 'reg');
+            document.getElementById('box-login').classList.toggle('hidden', tab !== 'login');
+            document.getElementById('box-reg').classList.toggle('hidden', tab !== 'reg');
+        }
+
+        async function login() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const formData = new URLSearchParams();
+            formData.append('username', email);
+            formData.append('password', password);
+
+            try {
+                const res = await fetch('/api/login', { method: 'POST', body: formData });
+                const data = await res.json();
+                if (res.ok) {
+                    localStorage.setItem('access_token', data.access_token);
+                    showDashboard();
+                } else {
+                    document.getElementById('auth-error').innerText = data.detail || 'Chyba přihlášení.';
+                }
+            } catch (e) {
+                document.getElementById('auth-error').innerText = 'Chyba připojení.';
+            }
+        }
+
+        async function register() {
+            const username = document.getElementById('reg-username').value;
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+
+            try {
+                const res = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    document.getElementById('auth-success').innerText = data.message;
+                    setTimeout(() => switchAuthTab('login'), 2000);
+                } else {
+                    document.getElementById('auth-error').innerText = data.detail || 'Chyba registrace.';
+                }
+            } catch (e) {
+                document.getElementById('auth-error').innerText = 'Chyba připojení.';
+            }
+        }
+
+        function showDashboard() {
+            document.getElementById('auth-container').classList.add('hidden');
+            document.getElementById('dashboard-container').classList.remove('hidden');
+            document.getElementById('langSelect').value = currentLang;
+            applyLanguage();
+            loadSettingsAndData();
+        }
+
+        function changeLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('app_lang', lang);
+            applyLanguage();
+        }
+
+        function applyLanguage() {
+            const t = translations[currentLang];
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) el.innerText = t[key];
+            });
+            const statusDiv = document.getElementById('status');
+            if (statusDiv.innerText.includes("Čekám") || statusDiv.innerText.includes("Waiting")) {
+                statusDiv.innerText = t.statusWaiting;
+            }
+            if (cachedOrders.length > 0) filterOrders();
+        }
+
+        async function loadSettingsAndData() {
+            const tkn = getToken();
+            if (!tkn) { logout(); return; }
+
+            try {
+                const res = await fetch('/api/settings', { headers: { 'Authorization': `Bearer ${tkn}` }});
+                if (res.ok) {
+                    const data = await res.json();
+                    document.getElementById('store-name-display').innerText = data.username || 'Maryxz';
+                    document.getElementById('setting-username').value = data.username || '';
+                    document.getElementById('setting-client-id').value = data.client_id || '';
+                    document.getElementById('discord-webhook-input').value = data.discord_webhook_url || '';
+                    
+                    const secretInput = document.getElementById('setting-client-secret');
+                    if (data.has_secret) {
+                        secretInput.placeholder = "•••••••••••• (Uloženo)";
+                    } else {
+                        secretInput.placeholder = "Client Secret";
+                    }
+                }
+            } catch (e) {
+                console.error(e);
+            }
+            loadData();
+            setInterval(loadData, 60000);
+        }
+
+        async function saveSettings() {
+            const tkn = getToken();
+            const secretVal = document.getElementById('setting-client-secret').value;
+            const payload = { 
+                username: document.getElementById('setting-username').value, 
+                client_id: document.getElementById('setting-client-id').value, 
+                discord_webhook_url: document.getElementById('discord-webhook-input').value 
+            };
+            
+            if (secretVal) {
+                payload.client_secret = secretVal;
+            }
+
+            const res = await fetch('/api/settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${tkn}` },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                alert(currentLang === 'cs' ? 'Nastavení obchodu bylo uloženo!' : 'Store settings saved!');
+                document.getElementById('store-name-display').innerText = payload.username || 'Maryxz';
+                document.getElementById('setting-client-secret').value = '';
+                toggleSettings();
+                loadSettingsAndData();
+            } else {
+                alert(currentLang === 'cs' ? 'Chyba při ukládání.' : 'Error saving settings.');
+            }
+        }
+
+        async function sendTestDiscord() {
+            const statusSpan = document.getElementById('test-status');
+            statusSpan.textContent = currentLang === 'cs' ? "Odesílám..." : "Sending...";
+            
+            try {
+                const res = await fetch('/api/test-discord', {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + getToken() }
+                });
+                
+                if (res.ok) {
+                    statusSpan.textContent = currentLang === 'cs' ? "✅ Odesláno!" : "✅ Sent!";
+                } else {
+                    const err = await res.json();
+                    statusSpan.textContent = "❌ " + (err.detail || "Chyba");
+                }
+            } catch (e) {
+                statusSpan.textContent = currentLang === 'cs' ? "❌ Chyba spojení" : "❌ Connection error";
+            }
+            setTimeout(() => { statusSpan.textContent = ""; }, 4000);
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return "—";
+            const date = new Date(dateString);
+            return date.toLocaleDateString(currentLang === 'cs' ? 'cs-CZ' : 'en-US', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        }
+
+        function getStatusBadge(status) {
+            const s = (status || '').toLowerCase();
+            return `<span class="badge status-${s}">${status}</span>`;
+        }
+
+        function getReviewHtml(review) {
+            if (!review) return `<span class="icon-none">—</span>`;
+            const rating = review.feedbackRating;
+            const msg = review.reviewMessage ? review.reviewMessage.trim() : '';
+            const up = `<svg class="icon-up" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>`;
+            const down = `<svg class="icon-down" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"></path></svg>`;
+            return `<div class="review-box">${rating === 'Negative' ? down : up} ${msg ? `<span class="review-text" title="${msg}">"${msg}"</span>` : ''}</div>`;
+        }
+
+        async function loadData() {
+            const tkn = getToken();
+            const statusDiv = document.getElementById('status');
+            const t = translations[currentLang];
+            statusDiv.innerHTML = t.statusDownloading;
+
+            try {
+                const res = await fetch('/api/orders', { headers: { 'Authorization': `Bearer ${tkn}` }});
+                const data = await res.json();
+                if (data.error) {
+                    statusDiv.innerHTML = t.statusError(data.error);
+                } else if (data.results) {
+                    cachedOrders = data.results;
+                    let rev = 0, pend = 0;
+                    cachedOrders.forEach(o => {
+                        const s = o.state ? o.state.state : '';
+                        const amt = o.totalPrice ? o.totalPrice.amount : 0;
+                        
+                        if (s === 'Completed') {
+                            rev += amt;
+                        } else if (s !== 'Canceled') {
+                            // Ignorujeme Canceled objednávky
+                            pend += amt;
+                        }
+                    });
+                    document.getElementById('stat-revenue').innerText = '$' + rev.toFixed(2);
+                    document.getElementById('stat-pending').innerText = `+ $${pend.toFixed(2)} pending`;
+                    document.getElementById('stat-total').innerText = cachedOrders.length;
+                    statusDiv.innerHTML = t.statusSuccess(cachedOrders.length);
+                    filterOrders();
+                } else {
+                    statusDiv.innerHTML = t.noOrders;
+                }
+            } catch (e) {
+                statusDiv.innerHTML = t.statusConnError;
+            }
+        }
+
+        async function setStoreOffline() {
+            const tkn = getToken();
+            const res = await fetch('/api/store/switch-offline', {
+                method: 'POST',
+                headers: { 
+                    'Authorization': `Bearer ${tkn}` 
+                }
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                alert("🔴 Obchod přepnut do Offline!");
+            } else {
+                alert("❌ Chyba: " + (data.detail || "Nepodařilo se přepnout obchod"));
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            if (getToken()) showDashboard();
+        });
+    </script>
+</body>
+</html>

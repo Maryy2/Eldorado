@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <title>Discord Webhook Test</title>
+    <style>
+        /* Styl pro ztmavení pozadí při otevřeném popupu */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1000; 
+            left: 0; top: 0; 
+            width: 100%; height: 100%; 
+            background-color: rgba(0,0,0,0.5); 
+            justify-content: center; 
+            align-items: center;
+        }
+
+        /* Styl obsahu popup okna */
+        .modal-content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            width: 320px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .modal-content label {
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .modal-content input {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Hlavní tlačítko na stránce -->
+    <button onclick="openModal()">Odeslat zprávu na Discord</button>
+
+    <!-- Pop-up Okno -->
+    <div id="discordModal" class="modal">
+        <div class="modal-content">
+            <h3>Testovací Discord Zpráva</h3>
+            
+            <label for="order_id">ID Objednávky:</label>
+            <input type="text" id="order_id" value="TEST-12345">
+
+            <label for="buyer">Kupující:</label>
+            <input type="text" id="buyer" value="Testovací Kupující">
+
+            <label for="amount">Částka:</label>
+            <input type="number" id="amount" step="0.01" value="10.00">
+
+            <label for="status">Stav:</label>
+            <input type="text" id="status" value="Completed">
+
+            <div class="buttons">
+                <button type="button" onclick="closeModal()">Zrušit</button>
+                <button type="button" onclick="sendDiscordData()">Odeslat</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openModal() {
+            document.getElementById('discordModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('discordModal').style.display = 'none';
+        }
+
+        async function sendDiscordData() {
+            const data = {
+                order_id: document.getElementById('order_id').value,
+                buyer: document.getElementById('buyer').value,
+                amount: parseFloat(document.getElementById('amount').value),
+                status: document.getElementById('status').value
+            };
+
+            try {
+                const response = await fetch('/api/post-discord', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert('Úspěšně odesláno: ' + result.message);
+                    closeModal();
+                } else {
+                    alert('Chyba: ' + (result.detail || 'Nepodařilo se odeslat zprávu.'));
+                }
+            } catch (error) {
+                console.error('Chyba při komunikaci s API:', error);
+                alert('Došlo k chybě při odesílání.');
+            }
+        }
+    </script>
+</body>
+</html>

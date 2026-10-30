@@ -1,0 +1,18 @@
+# Virtuální prostředí
+venv/
+env/
+
+junk/
+
+# Mezipaměť Pythonu
+__pycache__/
+*.pyc
+
+# Konfigurační soubory s hesly/klíči
+.env
+config.json
+
+# Soubory operačního systému
+.DS_Store
+Thumbs.db
+eldorado.db
