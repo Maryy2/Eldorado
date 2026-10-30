@@ -1,9 +1,12 @@
 fastapi
 uvicorn
 sqlalchemy
-passlib[bcrypt]
-python-jose[cryptography]
 pydantic
 requests
-stripe
+httpx
 jinja2
+python-dotenv
+passlib[bcrypt]
+bcrypt
+python-jose[cryptography]
+stripe
