@@ -12,3 +12,4 @@ python-jose[cryptography]
 stripe
 psycopg[binary]
 psycopg2-binary
+python-multipart
